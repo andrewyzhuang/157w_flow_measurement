@@ -1,0 +1,10 @@
+name: flow
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python
+  - numpy
+  - pandas
+  - plotly
+  - coolprop

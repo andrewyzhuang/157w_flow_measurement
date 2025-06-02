@@ -1,0 +1,20 @@
+{
+  "name": "Python (Conda) Environment",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "settings": {
+    "terminal.integrated.defaultProfile.linux": "bash",
+    "python.defaultInterpreterPath": "/opt/conda/envs/flow/bin/python"
+  },
+  "postCreateCommand": "conda init bash && conda activate flow",
+  "remoteUser": "vscode",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-toolsai.jupyter"
+      ]
+    }
+  }
+}
