@@ -76,7 +76,7 @@ for i in range(len(df)):
 
 fig.update_layout(
     title=dict(
-        text="Venturi Pressure Recovery Profile",
+        text="Venturi Meter: Pressure Recovery Profile",
         x=0.5,
         xanchor='center'
     ),
@@ -85,7 +85,7 @@ fig.update_layout(
     legend_title="Flow Rate (%)",
     template="plotly_white",
     height=600,
-    width=1000
+    width=900
 )
 fig.show()
 
@@ -123,7 +123,7 @@ fig.add_trace(go.Scatter(
 
 fig.update_layout(
     title=dict(
-        text="Orifice Plate Discharge Coefficient vs. Reynolds Number",
+        text="Orifice Plate: Discharge Coefficient vs. Reynolds Number",
         x=0.5,
         xanchor='center'
     ),
@@ -154,7 +154,7 @@ for i in range(len(df)):
 
 fig.update_layout(
     title=dict(
-        text="Orifice Plate Pressure Recovery vs. Tap Location",
+        text="Orifice Plate: Pressure Recovery vs. Tap Location",
         x=0.5,
         xanchor='center'
     ),
@@ -163,7 +163,7 @@ fig.update_layout(
     legend_title="Flow Rate (%)",
     template="plotly_white",
     height=600,
-    width=1000
+    width=900
 )
 fig.show()
 
@@ -201,7 +201,7 @@ fig.add_trace(go.Scatter(
 
 fig.update_layout(
     title=dict(
-        text="Sonic Nozzle Discharge Coefficient vs. Reynolds Number",
+        text="Sonic Nozzle: Discharge Coefficient vs. Reynolds Number",
         x=0.5,
         xanchor='center'
     ),
@@ -219,22 +219,18 @@ fig.show()
 cfm_conversion = 0.00047194745  # (m³/s) → CFM
 venturi_flow_cfm = (m_dot_actual * rho_air) / cfm_conversion
 
-# normalize pressure drop to "per 8 in" scale
-dp_laminar_norm = dp_laminar_inH2O / 8.0
-
 # linear fit on experimental data
-coeffs_laminar = np.polyfit(dp_laminar_norm, venturi_flow_cfm, 1)
-fit_line_laminar = np.polyval(coeffs_laminar, dp_laminar_norm)
+coeffs_laminar = np.polyfit(dp_laminar_inH2O, venturi_flow_cfm, 1)
+fit_line_laminar = np.polyval(coeffs_laminar, dp_laminar_inH2O)
 
 # theoretical model: 40 CFM at 8 in H₂O → slope = 5 CFM/in
-theory_line = 40 * dp_laminar_norm
-
+theory_line = 5 * dp_laminar_inH2O
 
 # fig 5: Laminar Flow Meter CFM vs. Pressure Drop
 fig = go.Figure()
 
 fig.add_trace(go.Scatter(
-    x=dp_laminar_norm,
+    x=dp_laminar_inH2O,
     y=venturi_flow_cfm,
     mode='markers',
     marker=dict(size=8, color='darkblue'),
@@ -242,7 +238,7 @@ fig.add_trace(go.Scatter(
 ))
 
 fig.add_trace(go.Scatter(
-    x=dp_laminar_norm,
+    x=dp_laminar_inH2O,
     y=fit_line_laminar,
     mode='lines',
     line=dict(width=2, color='royalblue'),
@@ -250,7 +246,7 @@ fig.add_trace(go.Scatter(
 ))
 
 fig.add_trace(go.Scatter(
-    x=dp_laminar_norm,
+    x=dp_laminar_inH2O,
     y=theory_line,
     mode='lines',
     line=dict(dash='dash', width=2, color='gray'),
@@ -263,7 +259,7 @@ fig.update_layout(
         x=0.5,
         xanchor='center'
     ),
-    xaxis_title="Normalized Pressure Drop (in H₂O / 8 in)",
+    xaxis_title="Normalized Pressure Drop (in H₂O)",
     yaxis_title="Flowrate (CFM)",
     legend_title="Legend",
     template="plotly_white",
@@ -376,9 +372,8 @@ venturi_table = pd.DataFrame({
     "Test #":            np.arange(1, len(df) + 1),
     "Reynolds Number":   np.round(Re_venturi, 0),
     "Compressibility Ya": np.round(Y_venturi, 4),
-    "Cd (Venturi)":      np.round(Cd_interp, 4),
-    "Mass Flow (kg/s)":  np.round(m_dot_actual, 5),
-    "Flowrate (CFM)":    np.round(flowrate_cfm_venturi, 2)
+    "Ideal Mass Flow (kg/s)":  np.round(m_dot_ideal, 5),
+    "Actual Mass Flow (kg/s)":    np.round(m_dot_actual, 5)
 })
 
 print("\n=== Venturi Results Table ===")
@@ -388,6 +383,8 @@ print(venturi_table.to_string(index=False))
 # ORIFICE RESULTS TABLE
 orifice_table = pd.DataFrame({
     "Test #":               np.arange(1, len(df) + 1),
+    "Reynolds number": np.round(Re_venturi,0),
+    "Compressibility": np.round(Y_orifice, 4),
     "Ideal Mass Flow (kg/s)": np.round(mdot_ideal_orif, 5),
     "Cd (Orifice)":         np.round(Cd_orifice, 4)
 })
@@ -399,6 +396,7 @@ print(orifice_table.to_string(index=False))
 # SONIC NOZZLE RESULTS TABLE
 sonic_table = pd.DataFrame({
     "Test #":                np.arange(1, len(df) + 1),
+    "Reynolds": np.round(Re_venturi, 0),
     "Ideal Mass Flow (kg/s)": np.round(mdot_ideal_sonic, 5),
     "Cd (Sonic Nozzle)":      np.round(Cd_sonic, 4)
 })
@@ -409,7 +407,7 @@ print(sonic_table.to_string(index=False))
 
 # CALIBRATION CURVE COEFFICIENTS (Least-Squares Fit)
 # laminar flow meter
-coeffs_laminar = np.polyfit(dp_laminar_norm, venturi_flow_cfm, 1)
+coeffs_laminar = np.polyfit(dp_laminar_inH2O, venturi_flow_cfm, 1)
 slope_laminar, intercept_laminar = coeffs_laminar
 slope_per_inH2O = slope_laminar / 8.0  # Normalize to per inch of H₂O
 
